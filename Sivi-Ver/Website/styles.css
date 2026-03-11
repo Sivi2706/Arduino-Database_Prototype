@@ -1,223 +1,311 @@
-:root{
-  --bg:#0b1020;
-  --card:#121a33;
-  --text:#e7ebff;
-  --muted:#a9b2da;
-  --border:rgba(255,255,255,.1);
+/* ================================================================
+   styles.css — Arduino Web Dashboard
+   
+   HOW CSS WORKS:
+   Each block targets an HTML element using its tag, class (.name),
+   or id (#name) and applies visual rules inside { }.
+================================================================ */
 
-  --primary:#5b7cff;
-  --success:#40d67c;
-  --danger:#ff5b6e;
+
+/* ----------------------------------------------------------------
+   GLOBAL RESET & COLOUR VARIABLES
+   * means "apply to every element"
+   :root stores reusable colour values we reference with var(--name)
+---------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box; /* padding/border don't expand element size */
+  margin: 0;
+  padding: 0;
 }
 
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--bg);
-  color:var(--text);
+:root {
+  --bg:      #0f1117; /* page background (dark) */
+  --surface: #1a1d27; /* card/topbar background */
+  --border:  #2a2d3a; /* subtle borders */
+  --text:    #e2e8f0; /* main text colour */
+  --muted:   #64748b; /* dimmed text */
+  --success: #22c55e; /* green — connected */
+  --warn:    #f59e0b; /* amber — waiting */
+  --danger:  #ef4444; /* red — error / detected */
+  --accent:  #6366f1; /* purple — interactive elements */
 }
 
-
-
-/* HEADER */
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-
-  padding:15px;
-  border-bottom:1px solid var(--border);
-}
-
-.status{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:var(--success);
-}
-
-
-
-/* LAYOUT */
-
-.container{
-  max-width:900px;
-  margin:auto;
-  padding:20px;
-
-  display:grid;
-  gap:20px;
-}
-
-
-
-/* CARDS */
-
-.card{
-  background:var(--card);
-  padding:20px;
-  border-radius:12px;
-  border:1px solid var(--border);
-}
-
-h2{
-  margin-top:0;
-}
-
-
-
-/* SERVO DISPLAY */
-
-.servoArea{
-  margin-top:20px;
-  text-align:center;
-}
-
-.servoDial{
-  position:relative;
-  width:200px;
-  height:120px;
-  margin:auto;
-
-  border-radius:120px 120px 0 0;
-  border:1px solid var(--border);
-}
-
-.servoPivot{
-  position:absolute;
-  bottom:20px;
-  left:50%;
-
-  width:14px;
-  height:14px;
-
-  background:white;
-  border-radius:50%;
-
-  transform:translateX(-50%);
-}
-
-.servoArm{
-  position:absolute;
-  bottom:25px;
-  left:50%;
-
-  width:4px;
-  height:70px;
-
-  background:var(--primary);
-
-  transform-origin:bottom;
-  transform:translateX(-50%) rotate(0deg);
-}
-
-
-
-/* TEXT */
-
-.small{
-  font-size:0.9rem;
-  color:var(--muted);
-}
-
-
-
-/* SLIDER */
-
-input[type="range"]{
-  width:100%;
-  margin-top:10px;
-}
-
-/* Add to your existing styles.css */
-
-/* SERIAL MONITOR DISPLAY */
-
-.serial-container {
+body {
   background: var(--bg);
-  border-radius: 8px;
-  padding: 10px;
-  height: 200px;
-  overflow-y: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  border: 1px solid var(--border);
-  margin-top: 10px;
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; /* fills the whole screen vertically */
 }
 
-.serial-messages {
+
+/* ----------------------------------------------------------------
+   TOP BAR
+   Flexbox puts the title on the left, status dot on the right
+---------------------------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Status area (dot + text) */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* The small coloured circle — colour is changed by JavaScript */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%; /* makes it a circle */
+  background: var(--muted);
+  flex-shrink: 0;
+}
+
+
+/* ----------------------------------------------------------------
+   CARD GRID
+   auto-fit means cards wrap automatically on smaller screens
+---------------------------------------------------------------- */
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto; /* centres the grid */
+}
+
+/* Each card panel */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column; /* stack children vertically */
+  gap: 0.75rem;
+}
+
+/* Card section heading (e.g. "SERVO CONTROL") */
+.card h2 {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.card p  { font-size: 0.95rem; }
+.small   { font-size: 0.82rem; color: var(--muted); }
+
+
+/* ----------------------------------------------------------------
+   SLIDER (servo angle control)
+   accent-color sets the thumb/track colour
+---------------------------------------------------------------- */
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+
+/* ----------------------------------------------------------------
+   SERVO VISUAL
+   A semicircle with a rotating arm inside
+---------------------------------------------------------------- */
+.servoArea {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
-.serial-message {
-  display: flex;
-  gap: 10px;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
+/* The semicircle background */
+.servoDial {
+  position: relative;
+  width: 120px;
+  height: 60px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 60px 60px 0 0; /* rounds only the top two corners */
+  overflow: hidden; /* hides the arm when rotated outside */
 }
 
-.serial-message:hover {
-  background: rgba(255, 255, 255, 0.05);
+/* The rotating arm — JavaScript changes its transform: rotate() */
+.servoArm {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 52px;
+  background: var(--accent);
+  border-radius: 2px;
+  transform-origin: bottom center; /* rotates from the bottom */
+  transform: translateX(-50%) rotate(0deg);
+  transition: transform 0.1s ease; /* smooth rotation */
 }
 
-.serial-time {
+/* The white pivot dot at the base of the arm */
+.servoPivot {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: var(--text);
+  border-radius: 50%;
+}
+
+.servoReadout {
+  font-size: 0.85rem;
   color: var(--muted);
-  font-size: 0.8rem;
-  min-width: 70px;
 }
 
-.serial-text {
+
+/* ----------------------------------------------------------------
+   IR SENSOR BADGE
+   Pill-shaped label that turns red when an object is detected
+---------------------------------------------------------------- */
+.ir-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px; /* fully rounded pill */
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--border);
+  color: var(--muted);
+  transition: background 0.2s, color 0.2s;
+}
+
+/* JavaScript adds the class "active" when detected = true */
+.ir-badge.active {
+  background: #450a0a; /* dark red background */
+  color: var(--danger); /* bright red text */
+}
+
+
+/* ----------------------------------------------------------------
+   SERIAL MONITOR — message display box
+---------------------------------------------------------------- */
+
+/* Header row with legend and Clear button */
+.serial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Colour key labels */
+.serial-legend {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.legend-esp { color: #a5f3fc; } /* cyan for ESP32 messages */
+.legend-web { color: #86efac; } /* green for web messages */
+
+/* Scrollable message area */
+.serial-container {
+  height: 200px;
+  overflow-y: auto; /* scrolls when full */
+  background: #0a0c12;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  scroll-behavior: smooth;
+}
+
+/* Each individual message row */
+.serial-message {
+  padding: 0.2rem 0;
+  border-bottom: 1px solid #1a1d27;
+  line-height: 1.5;
   word-break: break-word;
-  color: var(--success);
+  white-space: pre-wrap;
 }
 
+/* Cyan = message came from ESP32 */
+.serial-message.from-esp { color: #a5f3fc; }
+
+/* Green = message came from the web page */
+.serial-message.from-web { color: #86efac; }
+
+/* Grey italic text shown when no messages yet */
 .serial-placeholder {
   color: var(--muted);
-  text-align: center;
-  padding: 20px;
   font-style: italic;
+  padding: 0.4rem 0;
 }
 
-.serial-controls {
+
+/* ----------------------------------------------------------------
+   MESSAGE INPUT ROW (text box + Send button)
+---------------------------------------------------------------- */
+.msg-row {
   display: flex;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 10px;
+  gap: 0.5rem;
 }
 
-.btn-small {
-  background: transparent;
+.msg-input {
+  flex: 1; /* takes all remaining width */
+  padding: 0.45rem 0.7rem;
+  background: #0a0c12;
   border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--text);
-  padding: 4px 12px;
-  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+/* Highlight border when the input is focused */
+.msg-input:focus {
+  border-color: var(--accent);
+}
+
+/* Purple Send button */
+.btn-send {
+  padding: 0.45rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
 }
 
-.btn-small:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-}
+.btn-send:hover { opacity: 0.85; }
 
-.serial-controls label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.serial-controls input[type="checkbox"] {
+/* Small grey buttons (e.g. Clear) */
+.btn-small {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  background: var(--border);
+  color: var(--text);
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
 }
+
+.btn-small:hover { background: var(--muted); }
