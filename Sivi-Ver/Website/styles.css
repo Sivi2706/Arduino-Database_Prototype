@@ -1,0 +1,137 @@
+:root{
+  --bg:#0b1020;
+  --card:#121a33;
+  --text:#e7ebff;
+  --muted:#a9b2da;
+  --border:rgba(255,255,255,.1);
+
+  --primary:#5b7cff;
+  --success:#40d67c;
+  --danger:#ff5b6e;
+}
+
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+
+
+/* HEADER */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:15px;
+  border-bottom:1px solid var(--border);
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--success);
+}
+
+
+
+/* LAYOUT */
+
+.container{
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+
+  display:grid;
+  gap:20px;
+}
+
+
+
+/* CARDS */
+
+.card{
+  background:var(--card);
+  padding:20px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+
+h2{
+  margin-top:0;
+}
+
+
+
+/* SERVO DISPLAY */
+
+.servoArea{
+  margin-top:20px;
+  text-align:center;
+}
+
+.servoDial{
+  position:relative;
+  width:200px;
+  height:120px;
+  margin:auto;
+
+  border-radius:120px 120px 0 0;
+  border:1px solid var(--border);
+}
+
+.servoPivot{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+
+  width:14px;
+  height:14px;
+
+  background:white;
+  border-radius:50%;
+
+  transform:translateX(-50%);
+}
+
+.servoArm{
+  position:absolute;
+  bottom:25px;
+  left:50%;
+
+  width:4px;
+  height:70px;
+
+  background:var(--primary);
+
+  transform-origin:bottom;
+  transform:translateX(-50%) rotate(0deg);
+}
+
+
+
+/* TEXT */
+
+.small{
+  font-size:0.9rem;
+  color:var(--muted);
+}
+
+
+
+/* SLIDER */
+
+input[type="range"]{
+  width:100%;
+  margin-top:10px;
+}
