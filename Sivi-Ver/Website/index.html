@@ -4,17 +4,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arduino Web Emulator</title>
+<title>Arduino Web Dashboard</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
 <header class="topbar">
-  <h1>Arduino Web Emulator</h1>
+  <h1>Arduino Web Dashboard</h1>
   <div class="status">
-    <span id="simDot" class="dot"></span>
-    <span id="simText">Simulation running</span>
+    <span id="simDot" class="dot" style="background:var(--muted)"></span>
+    <span id="simText">Connecting…</span>
   </div>
 </header>
 
@@ -23,167 +23,109 @@
   <!-- SERVO CONTROL -->
   <section class="card">
     <h2>Servo Control</h2>
-    <p>Angle: <span id="angleValue">90</span>°</p>
+    <p>Angle: <span id="angleValue">—</span>°</p>
     <input id="angleSlider" type="range" min="0" max="180" value="90" step="1">
     <div class="servoArea">
       <div class="servoDial">
         <div id="servoArm" class="servoArm"></div>
         <div class="servoPivot"></div>
       </div>
-      <p class="servoReadout">Angle: <span id="servoAngle">90</span>°</p>
+      <p class="servoReadout">Angle: <span id="servoAngle">—</span>°</p>
     </div>
   </section>
 
   <!-- SENSOR STATUS -->
   <section class="card">
-    <h2>Sensor Status</h2>
+    <h2>IR Sensor Status</h2>
     <p>Object Detected: <span id="irDetected">—</span></p>
     <p class="small">IR Raw Value: <span id="irValue">—</span></p>
+    <p class="small">Last updated: <span id="irTimestamp">—</span></p>
   </section>
 
 </main>
 
-<!-- FIREBASE BACKEND -->
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp }                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// ── Firebase config ──────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey: "AIzaSyBlxLdiakI8Zv5gtRWtAcfwxTcW-XtGbTw",
-  authDomain: "sivi-arduino-database.firebaseapp.com",
-  databaseURL: "https://sivi-arduino-database-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "sivi-arduino-database",
-  storageBucket: "sivi-arduino-database.firebasestorage.app",
+  apiKey:            "AIzaSyBlxLdiakI8Zv5gtRWtAcfwxTcW-XtGbTw",
+  authDomain:        "sivi-arduino-database.firebaseapp.com",
+  databaseURL:       "https://sivi-arduino-database-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "sivi-arduino-database",
+  storageBucket:     "sivi-arduino-database.firebasestorage.app",
   messagingSenderId: "854752663108",
-  appId: "1:854752663108:web:b80bad680b96bb63478e11",
-  measurementId: "G-C1XE1J4ZJR"
+  appId:             "1:854752663108:web:b80bad680b96bb63478e11",
+  measurementId:     "G-C1XE1J4ZJR"
 };
 
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getDatabase(initializeApp(firebaseConfig));
 
-// ----------------------------
-// GET HTML ELEMENTS
-// ----------------------------
-const simDot    = document.getElementById("simDot");
-const simText   = document.getElementById("simText");
-
+// ── DOM refs ─────────────────────────────────────────────────────
+const simDot      = document.getElementById("simDot");
+const simText     = document.getElementById("simText");
 const angleSlider = document.getElementById("angleSlider");
 const angleValue  = document.getElementById("angleValue");
+const servoArm    = document.getElementById("servoArm");
+const servoAngle  = document.getElementById("servoAngle");
+const irValue     = document.getElementById("irValue");
+const irDetected  = document.getElementById("irDetected");
+const irTimestamp = document.getElementById("irTimestamp");
 
-const servoArm   = document.getElementById("servoArm");
-const servoAngle = document.getElementById("servoAngle");
-
-const irValue    = document.getElementById("irValue");
-const irDetected = document.getElementById("irDetected");
-
-// ----------------------------
-// SYSTEM STATE
-// ----------------------------
-let servoAngleValue = 90;
-let irSensorValue   = 0;
-const THRESHOLD     = 500;   // object-detected threshold
-
-// ----------------------------
-// SIMULATION STATUS
-// ----------------------------
-function setSimulationStatus(running) {
-  if (running) {
-    simDot.style.background = "var(--success)";
-    simText.innerText = "Simulation running";
-  } else {
-    simDot.style.background = "var(--danger)";
-    simText.innerText = "Simulation paused";
-  }
-}
-
-// ----------------------------
-// SERVO VISUAL + FIREBASE WRITE
-// ----------------------------
+// ── Helpers ───────────────────────────────────────────────────────
 function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
 
-function updateServo(angle) {
-  servoAngleValue = clamp(angle, 0, 180);
-  const rotation  = servoAngleValue - 90;
-  servoArm.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
-  servoAngle.innerText = servoAngleValue;
-
-  // ✅ Write servo angle to Firebase
-  set(ref(database, "servo/angle"), servoAngleValue)
-    .catch(err => console.error("Firebase servo write error:", err));
+function setConnected(ok) {
+  simDot.style.background = ok ? "var(--success)" : "var(--danger)";
+  simText.innerText        = ok ? "Connected to ESP32" : "Disconnected";
 }
 
-// ----------------------------
-// IR SENSOR DISPLAY + FIREBASE WRITE
-// ----------------------------
-function updateIR(value) {
-  irSensorValue = value;
-  irValue.innerText = value;
-
-  if (value >= THRESHOLD) {
-    irDetected.innerText = "YES";
-    irDetected.style.color = "var(--danger)";
-  } else {
-    irDetected.innerText = "NO";
-    irDetected.style.color = "var(--muted)";
-  }
-
-  // ✅ Write IR data to Firebase
-  set(ref(database, "ir"), {
-    raw: value,
-    detected: value >= THRESHOLD
-  }).catch(err => console.error("Firebase IR write error:", err));
+function applyServoUI(angle) {
+  const a = clamp(Number(angle), 0, 180);
+  servoArm.style.transform = `translateX(-50%) rotate(${a - 90}deg)`;
+  servoAngle.innerText     = a;
+  angleSlider.value        = a;
+  angleValue.innerText     = a;
 }
 
-// ----------------------------
-// IR SENSOR SIMULATION
-// ----------------------------
-function simulateIR() {
-  const base  = 450 + Math.sin(Date.now() / 1000) * 120;
-  const noise = (Math.random() - 0.5) * 150;
-  return clamp(Math.round(base + noise), 0, 1023);
-}
+// ── Listen: servo/angle (ESP32 confirms position back) ───────────
+onValue(ref(db, "servo/angle"), snap => {
+  const val = snap.val();
+  if (val === null) return;
+  setConnected(true);
+  applyServoUI(val);
+});
 
-// ----------------------------
-// IR LOOP
-// ----------------------------
-setInterval(() => {
-  updateIR(simulateIR());
-}, 500);
+// ── Listen: IR sensor written by ESP32 ───────────────────────────
+onValue(ref(db, "ir"), snap => {
+  const data = snap.val();
+  if (!data) return;
 
-// ----------------------------
-// LISTEN FOR SERVO CHANGES FROM FIREBASE
-// (allows Arduino / other clients to push angle back)
-// ----------------------------
-onValue(ref(database, "servo/angle"), snapshot => {
-  const val = snapshot.val();
-  if (val !== null) {
-    const angle = clamp(Number(val), 0, 180);
-    // Update UI but don't trigger another write
-    servoAngleValue = angle;
-    servoArm.style.transform = `translateX(-50%) rotate(${angle - 90}deg)`;
-    servoAngle.innerText = angle;
-    angleSlider.value  = angle;
-    angleValue.innerText = angle;
+  irValue.innerText      = data.raw      ?? "—";
+  irDetected.innerText   = data.detected  ? "YES" : "NO";
+  irDetected.style.color = data.detected  ? "var(--danger)" : "var(--muted)";
+
+  if (data.timestamp) {
+    irTimestamp.innerText = new Date(data.timestamp).toLocaleTimeString();
   }
 });
 
-// ----------------------------
-// SLIDER → FIREBASE
-// ----------------------------
+// ── Slider → write servo/angle to Firebase (ESP32 reads this) ────
+let writeTimer = null;
 angleSlider.addEventListener("input", () => {
   const angle = Number(angleSlider.value);
   angleValue.innerText = angle;
-  updateServo(angle);
-});
+  applyServoUI(angle);
 
-// ----------------------------
-// INITIALIZE
-// ----------------------------
-updateServo(servoAngleValue);
-updateIR(0);
-setSimulationStatus(true);
+  // Debounce: only write after user stops dragging for 80 ms
+  clearTimeout(writeTimer);
+  writeTimer = setTimeout(() => {
+    set(ref(db, "servo/angle"), angle)
+      .catch(err => console.error("Firebase write error:", err));
+  }, 80);
+});
 
 </script>
 
