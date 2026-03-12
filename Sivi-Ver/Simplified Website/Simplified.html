@@ -1,0 +1,114 @@
+<!--
+========================================================
+ESP32 Firebase Dashboard
+--------------------------------------------------------
+This webpage allows you to:
+1. Control a servo connected to an ESP32
+2. Read an IR sensor value
+3. Send messages between Web and ESP32
+
+FILES USED
+---------
+index.html  -> webpage layout
+styles.css  -> styling
+app.js      -> Firebase logic
+
+SETUP OVERVIEW
+--------------
+1. Create a Firebase Project
+2. Enable Realtime Database
+3. Enable Anonymous Authentication
+4. Copy your Firebase config into app.js
+========================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Character encoding -->
+  <meta charset="UTF-8" />
+
+  <!-- Mobile scaling -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Page title -->
+  <title>ESP32 Dashboard</title>
+
+  <!-- Load external CSS -->
+  <link rel="stylesheet" href="styles.css" />
+
+</head>
+
+<body>
+
+  <h1>ESP32 Firebase Dashboard</h1>
+
+  <!-- Shows Firebase connection status -->
+  <p class="status" id="status">Connecting...</p>
+
+
+  <!-- ========================================================= -->
+  <!-- SERVO CONTROL -->
+  <!-- ========================================================= -->
+  <div class="card">
+
+    <h2>Servo Control</h2>
+
+    <!-- Shows current slider angle -->
+    <p>Angle: <span id="angleValue">90</span>°</p>
+
+    <!-- Slider used to control servo -->
+    <input id="angleSlider" type="range" min="0" max="180" value="90">
+
+    <!-- Shows the value currently stored in Firebase -->
+    <p>ESP32 angle: <span id="servoAngle">90</span>°</p>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- IR SENSOR DISPLAY -->
+  <!-- ========================================================= -->
+  <div class="card">
+
+    <h2>IR Sensor</h2>
+
+    <!-- Shows if object detected -->
+    <p>Detected: <span id="irDetected">--</span></p>
+
+    <!-- Shows raw sensor value -->
+    <p>Raw: <span id="irRaw">--</span></p>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- MESSAGE TERMINAL -->
+  <!-- ========================================================= -->
+  <div class="card">
+
+    <h2>Messages</h2>
+
+    <!-- Message display area -->
+    <div id="messages">No messages yet.</div>
+
+    <br>
+
+    <!-- Message input -->
+    <div class="row">
+
+      <input id="msgInput" type="text" placeholder="Type a message">
+
+      <button id="sendBtn">Send</button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Load JavaScript logic -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
