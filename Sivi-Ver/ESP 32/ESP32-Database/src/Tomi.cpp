@@ -14,11 +14,11 @@
 // #include <ESP32Servo.h>
 
 // // Insert your network credentials
-// #define WIFI_SSID "TMLaptop"
-// #define WIFI_PASSWORD "saa5181k"
+// #define WIFI_SSID "Xiaomi"
+// #define WIFI_PASSWORD "G2706pls"
 
-// #define DATABASE_URL "databaseprogramming-8bd17-default-rtdb.firebaseio.com"
-// #define API_KEY "AIzaSyCANnCH1UZSUmpnREvUBUuWljsXUVPncd4"
+// #define DATABASE_URL "https://sivi-arduino-database-default-rtdb.asia-southeast1.firebasedatabase.app"
+// #define API_KEY "AIzaSyBlxLdiakI8Zv5gtRWtAcfwxTcW-XtGbTw"
 
 // // Firebase Objects
 // FirebaseAuth auth;
